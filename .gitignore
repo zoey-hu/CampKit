@@ -201,6 +201,15 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+frontend/.dart_tool/
+frontend/build/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/

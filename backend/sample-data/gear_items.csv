@@ -1,0 +1,6 @@
+gear_id,name,category,quantity,location,status,is_essential,season_tags,weather_tags,notes,created_at,updated_at
+gear_001,Family Tent,shelter,1,Garage Shelf A,ready,true,"spring, summer, autumn","wind, light_rain",4-person tent,2026-03-20T10:00:00.000Z,2026-03-20T10:00:00.000Z
+gear_002,Sleeping Bag,sleeping,4,Closet Bin 2,ready,true,"spring, autumn","cold",Rated to 5C,2026-03-20T10:05:00.000Z,2026-03-20T10:05:00.000Z
+gear_003,Camping Stove,cooking,1,Garage Shelf B,ready,false,"spring, summer, autumn","",Two-burner stove,2026-03-20T10:10:00.000Z,2026-03-20T10:10:00.000Z
+gear_004,Cook Set,kitchen,1,Garage Shelf B,ready,false,"spring, summer, autumn","",Pots and pans set,2026-03-20T10:15:00.000Z,2026-03-20T10:15:00.000Z
+gear_005,LED Lantern,lighting,2,Entry Cabinet,ready,true,"spring, summer, autumn, winter","night",Battery lantern,2026-03-20T10:20:00.000Z,2026-03-20T10:20:00.000Z

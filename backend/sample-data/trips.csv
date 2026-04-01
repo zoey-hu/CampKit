@@ -1,0 +1,3 @@
+trip_id,camp_name,start_date,end_date,people_count,children_count,camp_type,cooking,has_power,with_pet,region_type,weather_summary,created_at,updated_at
+trip_001,Pine Ridge Camp,2026-04-18,2026-04-20,4,1,tent,true,false,false,forest,Cool evenings and possible wind,2026-03-25T08:00:00.000Z,2026-03-25T08:00:00.000Z
+trip_002,Lakeview Weekend,2026-05-02,2026-05-03,2,0,cabin,false,true,true,lake,Mild and clear,2026-03-26T09:00:00.000Z,2026-03-26T09:00:00.000Z

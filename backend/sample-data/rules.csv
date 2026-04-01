@@ -1,0 +1,4 @@
+rule_id,condition_type,condition_value,action_type,action_value,note
+rule_001,trip_field_equals,cooking:true,include_category,cooking,Include cooking gear when trip cooking is enabled
+rule_002,trip_field_equals,cooking:true,include_category,kitchen,Include kitchen gear when trip cooking is enabled
+rule_003,trip_field_equals,with_pet:true,require_item_name,Pet Water Bowl,Bring pet essentials when traveling with a pet
