@@ -1,51 +1,56 @@
+// ─────────────────────────────────────────────────────────────
+//  CampKit – Google Apps Script entry point
+//  Serves the web UI (doGet) and handles checklist API (doPost)
+// ─────────────────────────────────────────────────────────────
+
+var SPREADSHEET_ID = '1hwlRQ8-S2juhuhyfaIiGg2_U5TBJjfSDQDGws9HCQ_Y';
+var SHEET_NAME     = 'main view';
+
+// Column positions in the Sheet (1-indexed)
+var COL_BAG     = 2;  // B
+var COL_NO_NEED = 3;  // C
+var COL_ITEM    = 4;  // D
+var COL_PACKED  = 5;  // E
+var COL_NOTE    = 6;  // F
+
+var DATA_START_ROW = 2; // row 1 is the header
+
+// ── Entry points ─────────────────────────────────────────────
+
 function doGet(e) {
-  return handleRequest(e);
+  var action = e && e.parameter && e.parameter.action;
+  if (action === 'get_checklist') {
+    return jsonOutput(getChecklist());
+  }
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('CampKit')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function doPost(e) {
-  return handleRequest(e);
-}
-
-function handleRequest(e) {
   try {
-    var payload = getRequestPayload(e);
-    validateAction(payload);
-
-    var result = routeAction(payload.action, payload);
-    return jsonOutput(createSuccessResponse(result));
-  } catch (error) {
-    return jsonOutput(
-      createErrorResponse(
-        error.code || 'INTERNAL_ERROR',
-        error.message || 'Unexpected server error.'
-      )
-    );
+    var p = JSON.parse(e.postData.contents);
+    var result;
+    switch (p.action) {
+      case 'toggle_packed':
+        result = setCellBool(p.rowIndex, COL_PACKED, p.value);
+        break;
+      case 'toggle_no_need':
+        result = setCellBool(p.rowIndex, COL_NO_NEED, p.value);
+        break;
+      default:
+        throw { message: 'Unknown action: ' + p.action };
+    }
+    return jsonOutput({ ok: true, data: result });
+  } catch (err) {
+    return jsonOutput({ ok: false, error: err.message });
   }
 }
 
-function routeAction(action, payload) {
-  switch (action) {
-    case 'gear_list':
-      return listGear();
-    case 'gear_create':
-      return createGear(payload);
-    case 'gear_update':
-      return updateGear(payload);
-    case 'gear_delete':
-      return deleteGear(payload);
-    case 'trip_list':
-      return listTrips();
-    case 'trip_create':
-      return createTrip(payload);
-    case 'trip_update':
-      return updateTrip(payload);
-    case 'generate_checklist':
-      return generateChecklist(payload);
-    case 'checklist_get':
-      return getChecklist(payload);
-    case 'checklist_toggle_packed':
-      return toggleChecklistPacked(payload);
-    default:
-      throwKnownError('UNKNOWN_ACTION', 'Unsupported action: ' + action);
-  }
+// ── Helpers ───────────────────────────────────────────────────
+
+function jsonOutput(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
