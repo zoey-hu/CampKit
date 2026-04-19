@@ -1,257 +1,377 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>CampKit</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --green-dark  : #1B4332;
-  --green-mid   : #2D6A4F;
-  --green-light : #52B788;
-  --green-pale  : #B7E4C7;
-  --red-soft    : #FEE2E2;
-  --red-border  : #FCA5A5;
-  --red-text    : #DC2626;
-  --gray-100    : #F3F4F6;
-  --gray-200    : #E5E7EB;
-  --gray-400    : #9CA3AF;
-  --gray-600    : #6B7280;
-  --gray-900    : #111827;
-  --radius-sm   : 8px;
-  --radius-md   : 12px;
+  --bg: #efe8dc;
+  --bg-deep: #e6dccd;
+  --card: rgba(255, 255, 255, 0.9);
+  --card-strong: #ffffff;
+  --ink: #1f2c24;
+  --muted: #647164;
+  --line: rgba(79, 97, 79, 0.16);
+  --accent: #2f6b4f;
+  --accent-strong: #1e4f39;
+  --accent-soft: #dceadf;
+  --accent-wash: #edf5ef;
+  --skip: #7d3f36;
+  --skip-soft: #f8e1db;
+  --shadow: 0 20px 50px rgba(40, 50, 42, 0.12);
+  --shadow-soft: 0 10px 24px rgba(40, 50, 42, 0.08);
 }
 
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Segoe UI', sans-serif;
-  background: #EEF4EE;
-  color: var(--gray-900);
+  margin: 0;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.55), transparent 22%),
+    radial-gradient(circle at top right, rgba(211, 226, 213, 0.65), transparent 20%),
+    linear-gradient(180deg, #f9f5ef 0%, var(--bg) 45%, var(--bg-deep) 100%);
   min-height: 100dvh;
 }
 
-/* ── Header ────────────────────────────────────────────── */
-.header {
-  background: var(--green-mid);
-  color: #fff;
-  padding: 18px 16px 16px;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  box-shadow: 0 2px 8px rgba(0,0,0,.18);
-}
-.header-title {
-  font-size: 17px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 10px;
-}
-.overall-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.prog-track {
-  flex: 1;
-  background: rgba(255,255,255,.25);
-  border-radius: 99px;
-  height: 7px;
-  overflow: hidden;
-}
-.prog-fill {
-  height: 100%;
-  background: var(--green-pale);
-  border-radius: 99px;
-  transition: width .35s ease;
-}
-.prog-label {
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  min-width: 82px;
-  text-align: right;
-}
+h1, h2, h3, p { margin: 0; }
+button, input, select, textarea { font: inherit; }
 
-/* ── Filter bar ─────────────────────────────────────────── */
-.filter-bar {
-  background: #fff;
-  display: flex;
-  border-bottom: 1px solid var(--gray-200);
-  position: sticky;
-  top: 82px;
-  z-index: 199;
-}
-.ftab {
-  flex: 1;
-  text-align: center;
-  padding: 11px 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--gray-600);
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: color .15s, border-color .15s;
-  user-select: none;
-}
-.ftab.on {
-  color: var(--green-mid);
-  border-bottom-color: var(--green-mid);
-}
-
-/* ── Content ────────────────────────────────────────────── */
-.content {
-  padding: 12px 12px 88px;
-  max-width: 640px;
+.shell {
+  max-width: 1360px;
   margin: 0 auto;
+  padding: 24px 18px 96px;
 }
 
-/* ── Bag card ───────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+/* ── Hero ─────────────────────────────────────── */
+.hero-card { position: relative; overflow: hidden; margin-bottom: 18px; }
+.hero-card::after {
+  content: ""; position: absolute;
+  inset: auto -60px -80px auto;
+  width: 180px; height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(220, 234, 223, 0.95) 0%, rgba(220, 234, 223, 0) 70%);
+  pointer-events: none;
+}
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 14px; padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(47, 107, 79, 0.09);
+  color: var(--accent);
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero-title { font-size: clamp(26px, 4.5vw, 42px); line-height: 1.05; letter-spacing: -0.03em; }
+.stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.stat-chip {
+  border-radius: 999px; padding: 10px 14px;
+  background: var(--accent-soft); color: var(--accent);
+  font-weight: 800; font-size: 13px;
+}
+.overall-bar { margin-top: 16px; width: 100%; height: 10px; background: #ece5da; border-radius: 999px; overflow: hidden; }
+.overall-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #5c8d71, var(--accent)); transition: width .3s ease; }
+
+/* ── Layout ───────────────────────────────────── */
+.layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 18px; align-items: start; }
+.sidebar { position: sticky; top: 18px; display: grid; gap: 18px; }
+.section-title { font-size: 18px; margin-bottom: 14px; letter-spacing: -0.02em; }
+
+.filter-panel { display: grid; gap: 12px; }
+.search-wrap { position: relative; }
+.search-input {
+  width: 100%; padding: 14px 16px 14px 46px;
+  border-radius: 18px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--ink); outline: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.search-input:focus { border-color: rgba(47, 107, 79, 0.45); box-shadow: 0 0 0 4px rgba(47, 107, 79, 0.08); }
+.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-chip, .bag-chip {
+  border-radius: 999px; padding: 10px 14px; font-size: 13px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted); font-weight: 800;
+  cursor: pointer; transition: all .16s ease;
+}
+.filter-chip:hover, .bag-chip:hover, .filter-chip.active, .bag-chip.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.filter-chip.red-chip.active { background: var(--skip); border-color: var(--skip); color: #fff; }
+
+.summary-list { display: grid; gap: 10px; }
+.summary-item {
+  display: grid; gap: 8px;
+  padding: 14px 16px; border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(252, 251, 248, 0.92);
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.summary-item:hover, .summary-item.active {
+  transform: translateY(-1px);
+  border-color: rgba(47, 107, 79, 0.35);
+  box-shadow: var(--shadow-soft);
+}
+.summary-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.summary-name { font-weight: 800; }
+.summary-meta { color: var(--muted); font-size: 13px; }
+.summary-bar { width: 100%; height: 8px; background: #ece5da; border-radius: 999px; overflow: hidden; }
+.summary-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #5c8d71, var(--accent)); transition: width .2s ease; }
+
+/* ── Results bar ──────────────────────────────── */
+.results-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 14px; padding: 14px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+}
+.results-title { font-size: 15px; font-weight: 800; }
+.results-subtitle { margin-top: 4px; color: var(--muted); font-size: 13px; }
+.collapse-btn {
+  appearance: none; border: 1px solid var(--line); border-radius: 999px;
+  padding: 10px 14px; background: rgba(255, 255, 255, 0.75);
+  color: var(--ink); font-weight: 800; font-size: 13px;
+  cursor: pointer; white-space: nowrap;
+}
+
+/* ── Bag card ─────────────────────────────────── */
 .bag-card {
-  background: #fff;
-  border-radius: var(--radius-md);
-  margin-bottom: 10px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  background: var(--card-strong);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 28px; overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  scroll-margin-top: 22px;
 }
-.bag-head {
-  display: flex;
-  align-items: center;
-  padding: 13px 14px;
+.bag-card.is-hidden { display: none; }
+.bag-card.is-collapsed .bag-items { display: none; }
+
+.bag-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, rgba(250, 247, 241, 1) 0%, rgba(241, 247, 242, 1) 100%);
+  border-bottom: 1px solid var(--line);
   cursor: pointer;
-  user-select: none;
-  gap: 8px;
 }
-.bag-icon  { font-size: 20px; flex-shrink: 0; }
-.bag-name  { font-size: 15px; font-weight: 600; flex: 1; }
-.bag-count { font-size: 13px; color: var(--gray-600); margin-right: 2px; }
-.bag-caret {
-  font-size: 11px;
-  color: var(--gray-400);
-  transition: transform .2s;
+.bag-header-main { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+.bag-icon {
+  width: 44px; height: 44px; border-radius: 16px;
+  display: grid; place-items: center;
+  background: var(--accent-wash); color: var(--accent);
+  font-size: 21px; flex-shrink: 0;
 }
-.bag-card.closed .bag-caret { transform: rotate(-90deg); }
+.bag-title { font-size: 19px; font-weight: 900; letter-spacing: -0.02em; }
+.bag-subtitle { color: var(--muted); margin-top: 4px; font-size: 13px; }
+.bag-header-side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.bag-progress-pill {
+  border-radius: 999px; padding: 8px 12px;
+  background: var(--accent-soft); color: var(--accent);
+  font-weight: 800; font-size: 13px; white-space: nowrap;
+}
+.bag-toggle {
+  width: 36px; height: 36px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9); border: 1px solid var(--line);
+  display: grid; place-items: center;
+  color: var(--muted); font-size: 14px;
+  transition: transform .18s ease;
+}
+.bag-card.is-collapsed .bag-toggle { transform: rotate(-90deg); }
+.bag-prog-track { height: 3px; background: #ece5da; }
+.bag-prog-fill { height: 100%; background: var(--accent); transition: width .3s ease; }
 
-.bag-prog-track {
-  height: 3px;
-  background: var(--gray-100);
-}
-.bag-prog-fill {
-  height: 100%;
-  background: var(--green-light);
-  transition: width .35s ease;
-}
+.bag-items { background: rgba(255, 255, 255, 0.98); }
 
-.bag-items { }
-.bag-card.closed .bag-items { display: none; }
-
-/* ── Item row ───────────────────────────────────────────── */
+/* ── Item row ─────────────────────────────────── */
 .item-row {
-  display: flex;
-  align-items: flex-start;
-  padding: 11px 14px;
-  border-top: 1px solid var(--gray-100);
-  gap: 11px;
-  transition: opacity .2s;
-}
-.item-row.no-need { opacity: .38; }
-
-/* checkbox */
-.chk {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 2px solid var(--gray-200);
-  background: #fff;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 12px; padding: 14px 20px;
+  border-bottom: 1px solid #efe8dd;
   align-items: center;
-  justify-content: center;
-  margin-top: 1px;
+  transition: background-color .14s ease, opacity .14s ease;
+}
+.item-row:last-child { border-bottom: 0; }
+.item-row.is-hidden { display: none; }
+.item-row.is-no-need { opacity: .42; }
+.item-row.is-packed .item-name { text-decoration: line-through; color: #9ba59c; }
+
+.chk {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid #d4cdbf;
+  background: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
   transition: background .15s, border-color .15s;
+  padding: 0; appearance: none;
 }
-.chk.on {
-  background: var(--green-mid);
-  border-color: var(--green-mid);
-}
+.chk.on { background: var(--accent); border-color: var(--accent); }
 .chk.on::after {
-  content: '';
-  display: block;
-  width: 5px;
-  height: 9px;
+  content: ''; display: block;
+  width: 5px; height: 9px;
   border: 2px solid #fff;
-  border-top: none;
-  border-left: none;
+  border-top: none; border-left: none;
   transform: rotate(42deg) translateY(-1px);
 }
 
-/* text */
-.item-body { flex: 1; min-width: 0; }
-.item-name {
-  font-size: 15px;
-  line-height: 1.35;
-  word-break: break-word;
-  transition: color .15s, text-decoration .15s;
-}
-.item-row.packed .item-name {
-  text-decoration: line-through;
-  color: var(--gray-400);
-}
-.item-note {
-  font-size: 12px;
-  color: var(--gray-400);
-  margin-top: 3px;
-  word-break: break-word;
-}
+.item-body { min-width: 0; }
+.item-name { font-size: 15px; font-weight: 700; line-height: 1.4; word-break: break-word; transition: color .14s ease; }
+.item-note { margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
 
-/* no-need button */
 .nn-btn {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 99px;
-  border: 1px solid var(--gray-200);
-  color: var(--gray-600);
-  background: #fff;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background .15s, border-color .15s, color .15s;
+  appearance: none; border-radius: 999px;
+  padding: 8px 14px; font-size: 12px; font-weight: 800;
+  cursor: pointer; white-space: nowrap;
+  border: 1px solid #edf2ee;
+  background: #edf2ee; color: var(--accent);
+  transition: all .15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.nn-btn.on {
-  background: var(--red-soft);
-  border-color: var(--red-border);
-  color: var(--red-text);
+.nn-btn:hover { transform: translateY(-1px); }
+.nn-btn.off { background: var(--skip-soft); border-color: var(--skip-soft); color: var(--skip); }
+
+.empty-state {
+  display: none; margin-top: 20px; padding: 32px 24px;
+  border-radius: 24px; border: 1px dashed rgba(47, 107, 79, 0.28);
+  background: rgba(255, 255, 255, 0.6);
+  text-align: center; box-shadow: var(--shadow-soft);
+}
+.empty-state.show { display: block; }
+.empty-state-title { font-size: 18px; font-weight: 800; }
+.empty-state-copy { margin-top: 8px; color: var(--muted); line-height: 1.7; font-size: 14px; }
+
+.mobile-bag-nav {
+  display: none; margin-bottom: 14px; padding: 8px 2px 2px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.mobile-bag-nav::-webkit-scrollbar { display: none; }
+.mobile-bag-nav-inner { display: inline-flex; gap: 8px; min-width: 100%; }
+
+/* ── FAB + Modal ──────────────────────────────── */
+.fab {
+  position: fixed; right: 22px; bottom: 22px; z-index: 50;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 20px; border-radius: 999px;
+  background: var(--accent); color: #fff;
+  font-weight: 800; font-size: 15px; border: 0;
+  box-shadow: 0 16px 32px rgba(47, 107, 79, 0.35);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.fab:hover { transform: translateY(-1px); }
+.fab-plus {
+  display: inline-grid; place-items: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 17px; line-height: 1; font-weight: 900;
 }
 
-/* ── Loading / empty ────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(31, 44, 36, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 100; display: none;
+  align-items: flex-end; justify-content: center;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  width: 100%; max-width: 520px;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding: 22px 22px 24px;
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.18);
+  animation: slideUp .22s ease;
+}
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@media (min-width: 720px) { .modal-backdrop { align-items: center; } .modal { border-radius: 24px; } }
+
+.modal-title { font-size: 18px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 16px; }
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field-label {
+  font-size: 12.5px; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.field-input {
+  padding: 12px 14px; border-radius: 14px;
+  border: 1px solid var(--line); background: #fafaf7;
+  outline: none; font-size: 15px; color: var(--ink);
+}
+.field-input:focus {
+  border-color: rgba(47, 107, 79, 0.45);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(47, 107, 79, 0.08);
+}
+.bag-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.bag-pick-chip {
+  appearance: none; border-radius: 999px; padding: 8px 14px;
+  font-size: 13px; border: 1px solid var(--line);
+  background: #fafaf7; color: var(--muted);
+  font-weight: 800; cursor: pointer;
+}
+.bag-pick-chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.bag-pick-chip.new-bag { border-style: dashed; color: var(--accent); }
+.modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+.btn {
+  appearance: none; border: 0; border-radius: 999px;
+  padding: 12px 16px; font-weight: 800; cursor: pointer;
+  font-size: 14px; flex: 1;
+}
+.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 10px 24px rgba(47, 107, 79, 0.22); }
+.btn-primary:disabled { background: #c8d2cb; box-shadow: none; cursor: not-allowed; }
+.btn-ghost { background: #f2efe8; color: var(--ink); }
+
+/* ── Loading / init ───────────────────────────── */
 .center-msg {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 60dvh;
-  gap: 14px;
-  color: var(--gray-600);
-  font-size: 15px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 60dvh; gap: 14px;
+  color: var(--muted); font-size: 15px;
 }
 .spinner {
   width: 34px; height: 34px;
-  border: 3px solid var(--gray-200);
-  border-top-color: var(--green-mid);
+  border: 3px solid #d4cdbf;
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin .75s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.empty-section {
-  padding: 18px 14px;
-  font-size: 13px;
-  color: var(--gray-400);
-  text-align: center;
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 1120px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; } }
+@media (max-width: 768px) {
+  .shell { padding: 12px 10px 96px; }
+  .card { border-radius: 22px; padding: 18px; }
+  .hero-title { font-size: 26px; }
+  .stat-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .results-bar { display: grid; grid-template-columns: 1fr; }
+  .bag-header { padding: 14px 16px; align-items: flex-start; }
+  .bag-header-main { align-items: flex-start; }
+  .bag-header-side { flex-direction: column; align-items: flex-end; gap: 6px; }
+  .bag-title { font-size: 17px; }
+  .sidebar .bag-summary-card { display: none; }
+  .mobile-bag-nav { display: block; }
+  .item-row { padding: 12px 16px; gap: 10px; }
+  .item-name { font-size: 14.5px; }
+}
+@media (max-width: 520px) {
+  .stat-row { grid-template-columns: 1fr; }
+  .bag-progress-pill { padding: 6px 10px; font-size: 12px; }
+  .bag-toggle { width: 32px; height: 32px; border-radius: 10px; }
+  .nn-btn { padding: 7px 12px; font-size: 11.5px; }
+  .fab { right: 16px; bottom: 16px; padding: 12px 18px; font-size: 14px; }
 }
 </style>
 </head>
@@ -260,161 +380,388 @@ body {
   <div class="center-msg"><div class="spinner"></div><span>載入中…</span></div>
 </div>
 
+<!-- Add Item Modal -->
+<div class="modal-backdrop" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">新增裝備</div>
+    <div class="field">
+      <label class="field-label" for="mf-name">品項名稱</label>
+      <input class="field-input" id="mf-name" type="text" placeholder="例如：鈦餐具組" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="mf-note">備註（可選）</label>
+      <input class="field-input" id="mf-note" type="text" placeholder="例如：收在 22L 索爾箱" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label class="field-label">袋別</label>
+      <div class="bag-picker" id="mf-bag-picker"></div>
+      <input class="field-input" id="mf-new-bag" type="text" placeholder="新類別名稱" style="display:none; margin-top:8px;" autocomplete="off" />
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modal-cancel">取消</button>
+      <button type="button" class="btn btn-primary" id="modal-save">儲存</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ── State ─────────────────────────────────────────────────────
-var API  = '<?= ScriptApp.getService().getUrl() ?>';
-var filter   = 'all';   // all | active | unpacked
-var items    = [];
-var bagOrder = [];
-var tripName = 'CampKit';
+// ── API ──────────────────────────────────────────────────
+var API = '<?= ScriptApp.getService().getUrl() ?>';
 
-var BAG_ICONS = {
-  '露營用品':'⛺','睡眠用品':'🛏️','燈具':'💡',
-  '鍋具':'🍳','個人用品':'🎒','食材':'🥩'
-};
-function icon(bag){ return BAG_ICONS[bag] || '📦'; }
-
-// ── API ───────────────────────────────────────────────────────
 function apiFetch(action, body){
   if(action === 'get_checklist'){
     return fetch(API + '?action=get_checklist').then(function(r){ return r.json(); });
   }
   return fetch(API, {
     method: 'POST',
-    body: JSON.stringify(Object.assign({ action: action }, body))
+    body: JSON.stringify(Object.assign({ action: action }, body || {}))
   }).then(function(r){ return r.json(); });
 }
 
-// ── Render ────────────────────────────────────────────────────
-function visibleItems(list){
-  return list.filter(function(it){
-    if(filter === 'active')   return !it.noNeed;
-    if(filter === 'unpacked') return !it.noNeed && !it.packed;
-    return true;
-  });
-}
+// ── State ────────────────────────────────────────────────
+var items = [];
+var bagOrder = [];
+var tripName = 'CampKit';
+var uiState = {
+  search: '',
+  filter: 'all',
+  hideNoNeed: false,
+  collapsed: new Set()
+};
+var modalState = { selectedBag: null, newBagMode: false };
 
-function pct(n, d){ return d === 0 ? 0 : Math.round(n / d * 100); }
+var BAG_ICONS = {
+  '露營用品':'⛺','睡眠用品':'🛏️','燈具':'💡',
+  '鍋具':'🍳','個人用品':'🎒','食材':'🥬'
+};
+function iconOf(bag){ return BAG_ICONS[bag] || '📦'; }
 
+// ── Helpers ──────────────────────────────────────────────
 function esc(s){
-  return String(s)
+  return String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function pct(n,d){ return d===0 ? 0 : Math.round(n/d*100); }
+function normalize(v){ return (v||'').toString().trim().toLowerCase(); }
 
-function render(){
-  var activeAll  = items.filter(function(it){ return !it.noNeed; });
-  var packedAll  = activeAll.filter(function(it){ return it.packed; });
-  var totalPct   = pct(packedAll.length, activeAll.length);
-
-  // ── Header
-  var h = '<div class="header">';
-  h += '<div class="header-title">' + esc(tripName) + '</div>';
-  h += '<div class="overall-row">';
-  h += '<div class="prog-track"><div class="prog-fill" style="width:' + totalPct + '%"></div></div>';
-  h += '<div class="prog-label">' + packedAll.length + ' / ' + activeAll.length + '（' + totalPct + '%）</div>';
-  h += '</div></div>';
-
-  // ── Filter bar
-  h += '<div class="filter-bar">';
-  [['all','全部'],['active','要帶'],['unpacked','未打包']].forEach(function(f){
-    h += '<div class="ftab' + (filter===f[0]?' on':'') + '" onclick="setFilter(\'' + f[0] + '\')">' + f[1] + '</div>';
-  });
-  h += '</div>';
-
-  // ── Content
-  h += '<div class="content">';
-
-  bagOrder.forEach(function(bag){
-    var bagAll    = items.filter(function(it){ return it.bag === bag; });
-    var visible   = visibleItems(bagAll);
-    if(visible.length === 0) return;
-
-    var bagActive = bagAll.filter(function(it){ return !it.noNeed; });
-    var bagPacked = bagActive.filter(function(it){ return it.packed; });
-    var bagPct    = pct(bagPacked.length, bagActive.length);
-    var bagId     = 'bag_' + bag.replace(/\W/g,'_');
-
-    h += '<div class="bag-card" id="' + bagId + '">';
-
-    // bag header
-    h += '<div class="bag-head" onclick="toggleBag(\'' + bagId + '\')">';
-    h += '<span class="bag-icon">' + icon(bag) + '</span>';
-    h += '<span class="bag-name">' + esc(bag) + '</span>';
-    h += '<span class="bag-count">' + bagPacked.length + '/' + bagActive.length + '</span>';
-    h += '<span class="bag-caret">▼</span>';
-    h += '</div>';
-
-    // bag progress bar
-    h += '<div class="bag-prog-track"><div class="bag-prog-fill" style="width:' + bagPct + '%"></div></div>';
-
-    // items
-    h += '<div class="bag-items">';
-    visible.forEach(function(it){
-      var cls = 'item-row' + (it.noNeed?' no-need':'') + (it.packed?' packed':'');
-      h += '<div class="' + cls + '" id="r' + it.rowIndex + '">';
-      h += '<div class="chk' + (it.packed?' on':'') + '" onclick="togglePacked(' + it.rowIndex + ')"></div>';
-      h += '<div class="item-body">';
-      h += '<div class="item-name">' + esc(it.item) + '</div>';
-      if(it.note) h += '<div class="item-note">📍 ' + esc(it.note) + '</div>';
-      h += '</div>';
-      h += '<button class="nn-btn' + (it.noNeed?' on':'') + '" onclick="toggleNoNeed(' + it.rowIndex + ')">不帶</button>';
-      h += '</div>';
-    });
-
-    if(visible.length === 0){
-      h += '<div class="empty-section">沒有符合條件的項目</div>';
-    }
-
-    h += '</div></div>'; // bag-items + bag-card
-  });
-
-  h += '</div>'; // content
-  document.getElementById('app').innerHTML = h;
-}
-
-// ── Actions ───────────────────────────────────────────────────
-function setFilter(f){ filter = f; render(); }
-
-function toggleBag(id){
-  var el = document.getElementById(id);
-  if(el) el.classList.toggle('closed');
-}
-
-function findItem(rowIndex){
-  for(var i=0; i<items.length; i++){
-    if(items[i].rowIndex === rowIndex) return items[i];
-  }
+function findItem(id){
+  for(var i=0;i<items.length;i++) if(items[i].id===id) return items[i];
   return null;
 }
 
-function togglePacked(rowIndex){
-  var it = findItem(rowIndex);
+function matchesFilter(it){
+  if(uiState.filter === 'packed')   return !it.noNeed && it.packed;
+  if(uiState.filter === 'unpacked') return !it.noNeed && !it.packed;
+  return true;
+}
+function matchesSearch(it){
+  var term = normalize(uiState.search);
+  if(!term) return true;
+  return normalize(it.item + ' ' + it.note).indexOf(term) !== -1;
+}
+function isVisible(it){
+  if(uiState.hideNoNeed && it.noNeed) return false;
+  return matchesFilter(it) && matchesSearch(it);
+}
+
+// ── Render ───────────────────────────────────────────────
+function render(){
+  var activeAll = items.filter(function(it){ return !it.noNeed; });
+  var packedAll = activeAll.filter(function(it){ return it.packed; });
+  var totalPct  = pct(packedAll.length, activeAll.length);
+  var totalAll  = items.length;
+
+  var h = '<div class="shell">';
+  h += '<div class="card hero-card">';
+  h += '<div class="eyebrow">CampKit Checklist</div>';
+  h += '<h1 class="hero-title">' + esc(tripName) + '</h1>';
+  h += '<div class="overall-bar"><div class="overall-fill" style="width:' + totalPct + '%"></div></div>';
+  h += '<div class="stat-row">';
+  h += '<div class="stat-chip">整體 ' + totalPct + '%</div>';
+  h += '<div class="stat-chip">已裝袋 ' + packedAll.length + ' / ' + activeAll.length + '</div>';
+  h += '<div class="stat-chip">袋數 ' + bagOrder.length + '</div>';
+  h += '<div class="stat-chip">總品項 ' + totalAll + '</div>';
+  h += '</div></div>';
+
+  h += '<section class="layout">';
+  h += '<aside class="sidebar">';
+  h += '<div class="card filter-panel">';
+  h += '<h2 class="section-title">快速檢視</h2>';
+  h += '<div class="search-wrap"><span class="search-icon">⌕</span>';
+  h += '<input class="search-input" id="search-input" type="search" placeholder="搜尋裝備或備註" value="' + esc(uiState.search) + '" /></div>';
+  h += '<div class="chip-row">';
+  [['all','全部'],['unpacked','未裝袋'],['packed','已裝袋']].forEach(function(f){
+    h += '<button class="filter-chip' + (uiState.filter===f[0]?' active':'') + '" data-filter="' + f[0] + '" type="button">' + f[1] + '</button>';
+  });
+  h += '<button class="filter-chip red-chip' + (uiState.hideNoNeed?' active':'') + '" id="hide-nn-btn" type="button">' + (uiState.hideNoNeed ? '顯示不帶' : '隱藏不帶') + '</button>';
+  h += '</div></div>';
+
+  h += '<div class="card bag-summary-card">';
+  h += '<h2 class="section-title">各袋進度</h2>';
+  h += '<div class="summary-list">';
+  bagOrder.forEach(function(bag){
+    var bagActive = items.filter(function(it){ return it.bag===bag && !it.noNeed; });
+    var bagPacked = bagActive.filter(function(it){ return it.packed; });
+    var bagPct    = pct(bagPacked.length, bagActive.length);
+    h += '<div class="summary-item" data-bag-target="' + esc(bag) + '">';
+    h += '<div class="summary-main"><div class="summary-name">' + iconOf(bag) + ' ' + esc(bag) + '</div>';
+    h += '<div class="summary-meta">' + bagPacked.length + ' / ' + bagActive.length + ' · ' + bagPct + '%</div></div>';
+    h += '<div class="summary-bar"><div class="summary-fill" style="width:' + bagPct + '%"></div></div>';
+    h += '</div>';
+  });
+  h += '</div></div></aside>';
+
+  h += '<main>';
+  h += '<div class="mobile-bag-nav"><div class="mobile-bag-nav-inner">';
+  bagOrder.forEach(function(bag){
+    h += '<button type="button" class="bag-chip" data-bag-target="' + esc(bag) + '">' + iconOf(bag) + ' ' + esc(bag) + '</button>';
+  });
+  h += '</div></div>';
+
+  var totalVisible = items.filter(isVisible).length;
+  var bagsVisible = bagOrder.filter(function(bag){
+    return items.some(function(it){ return it.bag===bag && isVisible(it); });
+  }).length;
+  h += '<div class="results-bar">';
+  h += '<div class="results-copy"><div class="results-title">裝備總覽</div>';
+  h += '<div class="results-subtitle">目前顯示 ' + totalVisible + ' / ' + items.length + ' 個品項，共 ' + bagsVisible + ' 個袋別</div></div>';
+  h += '<button class="collapse-btn" id="collapse-btn" type="button">' + (uiState.collapsed.size >= bagOrder.length ? '全部展開' : '全部收合') + '</button>';
+  h += '</div>';
+
+  bagOrder.forEach(function(bag){
+    var bagAll    = items.filter(function(it){ return it.bag===bag; });
+    var bagActive = bagAll.filter(function(it){ return !it.noNeed; });
+    var bagPacked = bagActive.filter(function(it){ return it.packed; });
+    var bagPct    = pct(bagPacked.length, bagActive.length);
+    var visible   = bagAll.filter(isVisible);
+    var hasVisible= visible.length > 0;
+    var collapsed = uiState.collapsed.has(bag);
+
+    h += '<section class="bag-card' + (hasVisible?'':' is-hidden') + (collapsed?' is-collapsed':'') + '" data-bag-card="' + esc(bag) + '">';
+    h += '<div class="bag-header" data-bag-header="' + esc(bag) + '">';
+    h += '<div class="bag-header-main"><div class="bag-icon">' + iconOf(bag) + '</div>';
+    h += '<div><div class="bag-title">' + esc(bag) + '</div>';
+    h += '<div class="bag-subtitle">' + bagActive.length + ' 項要帶 · 共 ' + bagAll.length + ' 項</div></div></div>';
+    h += '<div class="bag-header-side">';
+    h += '<div class="bag-progress-pill">' + bagPacked.length + '/' + bagActive.length + ' · ' + bagPct + '%</div>';
+    h += '<div class="bag-toggle">⌃</div></div></div>';
+    h += '<div class="bag-prog-track"><div class="bag-prog-fill" style="width:' + bagPct + '%"></div></div>';
+    h += '<div class="bag-items">';
+    visible.forEach(function(it){
+      var cls = 'item-row' + (it.noNeed?' is-no-need':'') + (it.packed?' is-packed':'');
+      var rid = esc(it.id);
+      h += '<div class="' + cls + '" data-row-id="' + rid + '">';
+      h += '<button type="button" class="chk' + (it.packed?' on':'') + '" data-toggle-packed="' + rid + '" aria-label="toggle packed"></button>';
+      h += '<div class="item-body"><div class="item-name">' + esc(it.item) + '</div>';
+      if(it.note) h += '<div class="item-note">📍 ' + esc(it.note) + '</div>';
+      h += '</div>';
+      h += '<button type="button" class="nn-btn' + (it.noNeed?' off':'') + '" data-toggle-noneed="' + rid + '">' + (it.noNeed ? '不帶' : '帶') + '</button>';
+      h += '</div>';
+    });
+    h += '</div></section>';
+  });
+
+  if(totalVisible === 0){
+    h += '<div class="empty-state show"><div class="empty-state-title">找不到符合條件的裝備</div><p class="empty-state-copy">可以清空搜尋，或切回「全部」看看完整清單，或點右下角的「新增」加一個。</p></div>';
+  }
+
+  h += '</main></section></div>';
+  h += '<button class="fab" id="fab-add" type="button"><span class="fab-plus">+</span><span>新增</span></button>';
+
+  document.getElementById('app').innerHTML = h;
+  bindEvents();
+}
+
+// ── Events ───────────────────────────────────────────────
+function bindEvents(){
+  document.querySelectorAll('.filter-chip[data-filter]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      uiState.filter = btn.getAttribute('data-filter');
+      render();
+    });
+  });
+  var hideBtn = document.getElementById('hide-nn-btn');
+  if(hideBtn) hideBtn.addEventListener('click', function(){
+    uiState.hideNoNeed = !uiState.hideNoNeed;
+    render();
+  });
+  var si = document.getElementById('search-input');
+  if(si) si.addEventListener('input', function(){
+    uiState.search = si.value;
+    applyPartial();
+  });
+  document.querySelectorAll('[data-bag-header]').forEach(function(el){
+    el.addEventListener('click', function(){
+      var bag = el.getAttribute('data-bag-header');
+      if(uiState.collapsed.has(bag)) uiState.collapsed.delete(bag);
+      else uiState.collapsed.add(bag);
+      render();
+    });
+  });
+  document.querySelectorAll('[data-bag-target]').forEach(function(el){
+    el.addEventListener('click', function(){
+      var bag = el.getAttribute('data-bag-target');
+      uiState.collapsed.delete(bag);
+      render();
+      setTimeout(function(){
+        var card = document.querySelector('[data-bag-card="' + bag + '"]');
+        if(card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 30);
+    });
+  });
+  var cb = document.getElementById('collapse-btn');
+  if(cb) cb.addEventListener('click', function(){
+    var allCollapsed = uiState.collapsed.size >= bagOrder.length;
+    if(allCollapsed) uiState.collapsed.clear();
+    else bagOrder.forEach(function(b){ uiState.collapsed.add(b); });
+    render();
+  });
+  document.querySelectorAll('[data-toggle-packed]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      togglePacked(btn.getAttribute('data-toggle-packed'));
+    });
+  });
+  document.querySelectorAll('[data-toggle-noneed]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      toggleNoNeed(btn.getAttribute('data-toggle-noneed'));
+    });
+  });
+  var fab = document.getElementById('fab-add');
+  if(fab) fab.addEventListener('click', openAddModal);
+}
+
+function applyPartial(){
+  var totalVisible = items.filter(isVisible).length;
+  var bagsVisible = 0;
+  bagOrder.forEach(function(bag){
+    var card = document.querySelector('[data-bag-card="' + bag + '"]');
+    if(!card) return;
+    var bagAll = items.filter(function(it){ return it.bag===bag; });
+    var visibleInBag = bagAll.filter(isVisible);
+    if(visibleInBag.length > 0) bagsVisible += 1;
+    card.classList.toggle('is-hidden', visibleInBag.length === 0);
+    bagAll.forEach(function(it){
+      var row = card.querySelector('[data-row-id="' + it.id + '"]');
+      if(row) row.classList.toggle('is-hidden', !isVisible(it));
+    });
+  });
+  var rs = document.querySelector('.results-subtitle');
+  if(rs) rs.textContent = '目前顯示 ' + totalVisible + ' / ' + items.length + ' 個品項，共 ' + bagsVisible + ' 個袋別';
+}
+
+// ── Actions ──────────────────────────────────────────────
+function togglePacked(id){
+  var it = findItem(id);
   if(!it || it.noNeed) return;
   it.packed = !it.packed;
   render();
-  apiFetch('toggle_packed', { rowIndex: rowIndex, value: it.packed });
+  apiFetch('toggle_packed', { id: id, value: it.packed });
 }
-
-function toggleNoNeed(rowIndex){
-  var it = findItem(rowIndex);
+function toggleNoNeed(id){
+  var it = findItem(id);
   if(!it) return;
   it.noNeed = !it.noNeed;
-  if(it.noNeed) it.packed = false; // auto-unpack when marking "不帶"
+  if(it.noNeed) it.packed = false;
   render();
-  var noNeedVal = it.noNeed;
-  apiFetch('toggle_no_need', { rowIndex: rowIndex, value: noNeedVal }).then(function(){
-    if(noNeedVal){
-      apiFetch('toggle_packed', { rowIndex: rowIndex, value: false });
-    }
+  var val = it.noNeed;
+  apiFetch('toggle_no_need', { id: id, value: val }).then(function(){
+    if(val) apiFetch('toggle_packed', { id: id, value: false });
   });
 }
 
-// ── Init ──────────────────────────────────────────────────────
+// ── Add-item Modal ───────────────────────────────────────
+function openAddModal(){
+  modalState.selectedBag = bagOrder.length > 0 ? bagOrder[0] : null;
+  modalState.newBagMode = bagOrder.length === 0;
+  document.getElementById('mf-name').value = '';
+  document.getElementById('mf-note').value = '';
+  document.getElementById('mf-new-bag').value = '';
+  document.getElementById('mf-new-bag').style.display = modalState.newBagMode ? 'block' : 'none';
+  renderBagPicker();
+  document.getElementById('modal-bg').classList.add('show');
+  setTimeout(function(){ document.getElementById('mf-name').focus(); }, 50);
+}
+function closeModal(){
+  document.getElementById('modal-bg').classList.remove('show');
+}
+function renderBagPicker(){
+  var host = document.getElementById('mf-bag-picker');
+  var h = '';
+  bagOrder.forEach(function(b){
+    var on = (!modalState.newBagMode && b === modalState.selectedBag);
+    h += '<button type="button" class="bag-pick-chip' + (on?' on':'') + '" data-pick-bag="' + esc(b) + '">' + iconOf(b) + ' ' + esc(b) + '</button>';
+  });
+  h += '<button type="button" class="bag-pick-chip new-bag' + (modalState.newBagMode?' on':'') + '" data-pick-bag="__new__">+ 新類別</button>';
+  host.innerHTML = h;
+  host.querySelectorAll('[data-pick-bag]').forEach(function(el){
+    el.addEventListener('click', function(){
+      var v = el.getAttribute('data-pick-bag');
+      if(v === '__new__'){
+        modalState.newBagMode = true;
+        modalState.selectedBag = null;
+      } else {
+        modalState.newBagMode = false;
+        modalState.selectedBag = v;
+      }
+      renderBagPicker();
+      document.getElementById('mf-new-bag').style.display = modalState.newBagMode ? 'block' : 'none';
+      if(modalState.newBagMode) document.getElementById('mf-new-bag').focus();
+    });
+  });
+}
+function bindModalOnce(){
+  document.getElementById('modal-cancel').addEventListener('click', closeModal);
+  document.getElementById('modal-bg').addEventListener('click', function(e){
+    if(e.target.id === 'modal-bg') closeModal();
+  });
+  document.getElementById('modal-save').addEventListener('click', submitAddItem);
+}
+function submitAddItem(){
+  var name = document.getElementById('mf-name').value.trim();
+  var note = document.getElementById('mf-note').value.trim();
+  var bag  = modalState.newBagMode
+    ? document.getElementById('mf-new-bag').value.trim()
+    : (modalState.selectedBag || '');
+  if(!name){ document.getElementById('mf-name').focus(); return; }
+  if(!bag){
+    if(modalState.newBagMode) document.getElementById('mf-new-bag').focus();
+    return;
+  }
+  var saveBtn = document.getElementById('modal-save');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '儲存中…';
+  apiFetch('add_item', { item: name, note: note, bag: bag }).then(function(resp){
+    if(!resp || !resp.ok){
+      saveBtn.disabled = false;
+      saveBtn.textContent = '儲存';
+      alert('新增失敗' + (resp && resp.error ? '：' + resp.error : ''));
+      return;
+    }
+    closeModal();
+    return apiFetch('get_checklist').then(function(r){
+      saveBtn.disabled = false;
+      saveBtn.textContent = '儲存';
+      if(r && r.ok){
+        items    = r.data.items;
+        bagOrder = r.data.bags;
+        render();
+      }
+    });
+  }).catch(function(){
+    saveBtn.disabled = false;
+    saveBtn.textContent = '儲存';
+    alert('網路錯誤');
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────
+bindModalOnce();
 apiFetch('get_checklist').then(function(resp){
   if(!resp.ok){
-    document.getElementById('app').innerHTML =
-      '<div class="center-msg">⚠️ 載入失敗，請重新整理</div>';
+    document.getElementById('app').innerHTML = '<div class="center-msg">⚠️ 載入失敗，請重新整理</div>';
     return;
   }
   items    = resp.data.items;
@@ -423,8 +770,7 @@ apiFetch('get_checklist').then(function(resp){
   document.title = tripName;
   render();
 }).catch(function(){
-  document.getElementById('app').innerHTML =
-    '<div class="center-msg">⚠️ 網路錯誤，請重新整理</div>';
+  document.getElementById('app').innerHTML = '<div class="center-msg">⚠️ 網路錯誤，請重新整理</div>';
 });
 </script>
 </body>

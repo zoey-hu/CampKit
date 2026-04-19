@@ -1,5 +1,5 @@
 var APP_CONFIG = {
-  spreadsheetId: '',
+  spreadsheetId: '1JD8mO3fzBC0ve1Y0w-CvKYwLg9NRFJLOLe5EjHteEUA',
   sheets: {
     gear_items: {
       name: 'gear_items',
