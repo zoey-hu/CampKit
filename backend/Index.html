@@ -232,6 +232,12 @@ button, input, select, textarea { font: inherit; }
 .item-name { font-size: 15px; font-weight: 700; line-height: 1.4; word-break: break-word; transition: color .14s ease; }
 .item-note { margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
 
+.item-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .nn-btn {
   appearance: none; border-radius: 999px;
   padding: 8px 14px; font-size: 12px; font-weight: 800;
@@ -243,6 +249,27 @@ button, input, select, textarea { font: inherit; }
 }
 .nn-btn:hover { transform: translateY(-1px); }
 .nn-btn.off { background: var(--skip-soft); border-color: var(--skip-soft); color: var(--skip); }
+
+.icon-btn {
+  appearance: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  transition: all .15s ease;
+}
+.icon-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(47, 107, 79, 0.35);
+  color: var(--accent);
+}
 
 .empty-state {
   display: none; margin-top: 20px; padding: 32px 24px;
@@ -332,6 +359,8 @@ button, input, select, textarea { font: inherit; }
 .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 10px 24px rgba(47, 107, 79, 0.22); }
 .btn-primary:disabled { background: #c8d2cb; box-shadow: none; cursor: not-allowed; }
 .btn-ghost { background: #f2efe8; color: var(--ink); }
+.btn-danger { background: var(--skip-soft); color: var(--skip); }
+.btn-danger.hidden { display: none; }
 
 /* ── Loading / init ───────────────────────────── */
 .center-msg {
@@ -384,6 +413,7 @@ button, input, select, textarea { font: inherit; }
 <div class="modal-backdrop" id="modal-bg">
   <div class="modal">
     <div class="modal-title" id="modal-title">新增裝備</div>
+    <p class="item-note" id="modal-copy" style="margin-bottom:16px;">建立新的裝備品項，並放進指定袋別。</p>
     <div class="field">
       <label class="field-label" for="mf-name">品項名稱</label>
       <input class="field-input" id="mf-name" type="text" placeholder="例如：鈦餐具組" autocomplete="off" />
@@ -398,6 +428,7 @@ button, input, select, textarea { font: inherit; }
       <input class="field-input" id="mf-new-bag" type="text" placeholder="新類別名稱" style="display:none; margin-top:8px;" autocomplete="off" />
     </div>
     <div class="modal-actions">
+      <button type="button" class="btn btn-danger hidden" id="modal-delete">刪除</button>
       <button type="button" class="btn btn-ghost" id="modal-cancel">取消</button>
       <button type="button" class="btn btn-primary" id="modal-save">儲存</button>
     </div>
@@ -428,7 +459,7 @@ var uiState = {
   hideNoNeed: false,
   collapsed: new Set()
 };
-var modalState = { selectedBag: null, newBagMode: false };
+var modalState = { mode: 'add', editingId: null, selectedBag: null, newBagMode: false };
 
 var BAG_ICONS = {
   '露營用品':'⛺','睡眠用品':'🛏️','燈具':'💡',
@@ -448,6 +479,17 @@ function normalize(v){ return (v||'').toString().trim().toLowerCase(); }
 function findItem(id){
   for(var i=0;i<items.length;i++) if(items[i].id===id) return items[i];
   return null;
+}
+
+function reloadChecklist(){
+  return apiFetch('get_checklist').then(function(resp){
+    if(!resp || !resp.ok) throw new Error((resp && resp.error) || 'reload failed');
+    items    = resp.data.items;
+    bagOrder = resp.data.bags;
+    tripName = resp.data.tripName || 'CampKit';
+    document.title = tripName;
+    render();
+  });
 }
 
 function matchesFilter(it){
@@ -556,7 +598,10 @@ function render(){
       h += '<div class="item-body"><div class="item-name">' + esc(it.item) + '</div>';
       if(it.note) h += '<div class="item-note">📍 ' + esc(it.note) + '</div>';
       h += '</div>';
+      h += '<div class="item-actions">';
       h += '<button type="button" class="nn-btn' + (it.noNeed?' off':'') + '" data-toggle-noneed="' + rid + '">' + (it.noNeed ? '不帶' : '帶') + '</button>';
+      h += '<button type="button" class="icon-btn" data-edit-item="' + rid + '" aria-label="edit item">✎</button>';
+      h += '</div>';
       h += '</div>';
     });
     h += '</div></section>';
@@ -629,6 +674,12 @@ function bindEvents(){
       toggleNoNeed(btn.getAttribute('data-toggle-noneed'));
     });
   });
+  document.querySelectorAll('[data-edit-item]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      openEditModal(btn.getAttribute('data-edit-item'));
+    });
+  });
   var fab = document.getElementById('fab-add');
   if(fab) fab.addEventListener('click', openAddModal);
 }
@@ -674,16 +725,51 @@ function toggleNoNeed(id){
 
 // ── Add-item Modal ───────────────────────────────────────
 function openAddModal(){
+  modalState.mode = 'add';
+  modalState.editingId = null;
   modalState.selectedBag = bagOrder.length > 0 ? bagOrder[0] : null;
   modalState.newBagMode = bagOrder.length === 0;
+  document.getElementById('modal-title').textContent = '新增裝備';
+  document.getElementById('modal-copy').textContent = '建立新的裝備品項，並放進指定袋別。';
   document.getElementById('mf-name').value = '';
   document.getElementById('mf-note').value = '';
   document.getElementById('mf-new-bag').value = '';
   document.getElementById('mf-new-bag').style.display = modalState.newBagMode ? 'block' : 'none';
+  document.getElementById('modal-delete').disabled = false;
+  document.getElementById('modal-delete').classList.add('hidden');
+  document.getElementById('modal-delete').textContent = '刪除';
+  document.getElementById('modal-save').disabled = false;
+  document.getElementById('modal-save').textContent = '儲存';
   renderBagPicker();
   document.getElementById('modal-bg').classList.add('show');
   setTimeout(function(){ document.getElementById('mf-name').focus(); }, 50);
 }
+
+function openEditModal(id){
+  var item = findItem(id);
+  if(!item) return;
+
+  modalState.mode = 'edit';
+  modalState.editingId = id;
+  modalState.selectedBag = item.bag || (bagOrder.length > 0 ? bagOrder[0] : null);
+  modalState.newBagMode = bagOrder.indexOf(item.bag) === -1;
+
+  document.getElementById('modal-title').textContent = '編輯裝備';
+  document.getElementById('modal-copy').textContent = '調整品項名稱、袋別與備註，刪除也在這裡處理。';
+  document.getElementById('mf-name').value = item.item || '';
+  document.getElementById('mf-note').value = item.note || '';
+  document.getElementById('mf-new-bag').value = modalState.newBagMode ? (item.bag || '') : '';
+  document.getElementById('mf-new-bag').style.display = modalState.newBagMode ? 'block' : 'none';
+  document.getElementById('modal-delete').disabled = false;
+  document.getElementById('modal-delete').classList.remove('hidden');
+  document.getElementById('modal-delete').textContent = '刪除';
+  document.getElementById('modal-save').disabled = false;
+  document.getElementById('modal-save').textContent = '更新';
+  renderBagPicker();
+  document.getElementById('modal-bg').classList.add('show');
+  setTimeout(function(){ document.getElementById('mf-name').focus(); }, 50);
+}
+
 function closeModal(){
   document.getElementById('modal-bg').classList.remove('show');
 }
@@ -718,6 +804,7 @@ function bindModalOnce(){
     if(e.target.id === 'modal-bg') closeModal();
   });
   document.getElementById('modal-save').addEventListener('click', submitAddItem);
+  document.getElementById('modal-delete').addEventListener('click', submitDeleteItem);
 }
 function submitAddItem(){
   var name = document.getElementById('mf-name').value.trim();
@@ -732,27 +819,58 @@ function submitAddItem(){
   }
   var saveBtn = document.getElementById('modal-save');
   saveBtn.disabled = true;
-  saveBtn.textContent = '儲存中…';
-  apiFetch('add_item', { item: name, note: note, bag: bag }).then(function(resp){
+  saveBtn.textContent = modalState.mode === 'edit' ? '更新中…' : '儲存中…';
+  var action = modalState.mode === 'edit' ? 'update_item' : 'add_item';
+  var payload = { item: name, note: note, bag: bag };
+  if(modalState.mode === 'edit') payload.id = modalState.editingId;
+
+  apiFetch(action, payload).then(function(resp){
     if(!resp || !resp.ok){
       saveBtn.disabled = false;
-      saveBtn.textContent = '儲存';
-      alert('新增失敗' + (resp && resp.error ? '：' + resp.error : ''));
+      saveBtn.textContent = modalState.mode === 'edit' ? '更新' : '儲存';
+      alert((modalState.mode === 'edit' ? '更新失敗' : '新增失敗') + (resp && resp.error ? '：' + resp.error : ''));
       return;
     }
     closeModal();
-    return apiFetch('get_checklist').then(function(r){
+    return reloadChecklist().then(function(){
       saveBtn.disabled = false;
-      saveBtn.textContent = '儲存';
-      if(r && r.ok){
-        items    = r.data.items;
-        bagOrder = r.data.bags;
-        render();
-      }
+      saveBtn.textContent = modalState.mode === 'edit' ? '更新' : '儲存';
     });
   }).catch(function(){
     saveBtn.disabled = false;
-    saveBtn.textContent = '儲存';
+    saveBtn.textContent = modalState.mode === 'edit' ? '更新' : '儲存';
+    alert('網路錯誤');
+  });
+}
+
+function submitDeleteItem(){
+  if(modalState.mode !== 'edit' || !modalState.editingId) return;
+  if(!confirm('確定要刪除這個裝備嗎？')) return;
+
+  var deleteBtn = document.getElementById('modal-delete');
+  var saveBtn = document.getElementById('modal-save');
+  deleteBtn.disabled = true;
+  saveBtn.disabled = true;
+  deleteBtn.textContent = '刪除中…';
+
+  apiFetch('delete_item', { id: modalState.editingId }).then(function(resp){
+    if(!resp || !resp.ok){
+      deleteBtn.disabled = false;
+      saveBtn.disabled = false;
+      deleteBtn.textContent = '刪除';
+      alert('刪除失敗' + (resp && resp.error ? '：' + resp.error : ''));
+      return;
+    }
+    closeModal();
+    return reloadChecklist().then(function(){
+      deleteBtn.disabled = false;
+      saveBtn.disabled = false;
+      deleteBtn.textContent = '刪除';
+    });
+  }).catch(function(){
+    deleteBtn.disabled = false;
+    saveBtn.disabled = false;
+    deleteBtn.textContent = '刪除';
     alert('網路錯誤');
   });
 }
