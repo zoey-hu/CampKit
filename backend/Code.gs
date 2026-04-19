@@ -16,15 +16,30 @@ var COL_NOTE    = 6;  // F
 var NUM_COLS    = 6;
 
 var DATA_START_ROW = 3; // row 1 blank, row 2 header
+var ACCESS_ROLE_ORDER = {
+  none: 0,
+  viewer: 1,
+  editor: 2,
+  admin: 3
+};
 
 // ── Entry points ─────────────────────────────────────────────
 
 function doGet(e) {
   var action = e && e.parameter && e.parameter.action;
   if (action === 'get_checklist') {
+    requireAccess('get_checklist', getAccessKeyFromRequest(e));
     return jsonOutput(getSheetChecklist());
   }
-  return HtmlService.createTemplateFromFile('Index').evaluate()
+
+  var template = HtmlService.createTemplateFromFile('Index');
+  var accessKey = getAccessKeyFromRequest(e);
+  template.apiUrl = ScriptApp.getService().getUrl();
+  template.initialAccessKey = accessKey;
+  template.initialAccessRole = getAccessRole(accessKey);
+  template.accessControlEnabled = isAccessControlEnabled();
+
+  return template.evaluate()
     .setTitle('CampKit')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -32,6 +47,8 @@ function doGet(e) {
 function doPost(e) {
   try {
     var p = JSON.parse(e.postData.contents);
+    requireAccess(p.action, getAccessKeyFromPayload(p));
+
     var result;
     switch (p.action) {
       case 'toggle_packed':
@@ -341,4 +358,85 @@ function testClearRowByNumber() {
   var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   deleteMainViewRow(sheet, testRow);
   Logger.log('Deleted row ' + testRow);
+}
+
+function setupAccessKeys() {
+  var props = PropertiesService.getScriptProperties();
+  props.setProperties({
+    CAMPKIT_ADMIN_KEY: Utilities.getUuid(),
+    CAMPKIT_EDITOR_KEY: Utilities.getUuid(),
+    CAMPKIT_VIEWER_KEY: Utilities.getUuid()
+  }, true);
+
+  Logger.log(JSON.stringify(props.getProperties()));
+  return props.getProperties();
+}
+
+function getAccessKeyFromRequest(e) {
+  return e && e.parameter ? String(e.parameter.access || '').trim() : '';
+}
+
+function getAccessKeyFromPayload(payload) {
+  return String(payload && payload.accessKey || '').trim();
+}
+
+function getAccessConfig() {
+  var props = PropertiesService.getScriptProperties();
+  return {
+    admin: String(props.getProperty('CAMPKIT_ADMIN_KEY') || '').trim(),
+    editor: String(props.getProperty('CAMPKIT_EDITOR_KEY') || '').trim(),
+    viewer: String(props.getProperty('CAMPKIT_VIEWER_KEY') || '').trim()
+  };
+}
+
+function isAccessControlEnabled() {
+  var config = getAccessConfig();
+  return !!(config.admin || config.editor || config.viewer);
+}
+
+function getAccessRole(accessKey) {
+  var config = getAccessConfig();
+  var key = String(accessKey || '').trim();
+
+  if (!isAccessControlEnabled()) {
+    return 'admin';
+  }
+  if (key && config.admin && key === config.admin) return 'admin';
+  if (key && config.editor && key === config.editor) return 'editor';
+  if (key && config.viewer && key === config.viewer) return 'viewer';
+  return 'none';
+}
+
+function getRequiredRoleForAction(action) {
+  switch (action) {
+    case 'get_checklist':
+      return 'viewer';
+    case 'toggle_packed':
+      return 'editor';
+    case 'toggle_no_need':
+    case 'add_item':
+    case 'update_item':
+    case 'delete_item':
+      return 'admin';
+    default:
+      return 'admin';
+  }
+}
+
+function hasRequiredRole(role, requiredRole) {
+  return ACCESS_ROLE_ORDER[role] >= ACCESS_ROLE_ORDER[requiredRole];
+}
+
+function requireAccess(action, accessKey) {
+  var role = getAccessRole(accessKey);
+  var requiredRole = getRequiredRoleForAction(action);
+
+  if (!hasRequiredRole(role, requiredRole)) {
+    throw {
+      message: 'permission denied',
+      code: 'FORBIDDEN',
+      requiredRole: requiredRole,
+      role: role
+    };
+  }
 }

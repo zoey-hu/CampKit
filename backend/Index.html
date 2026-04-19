@@ -437,15 +437,20 @@ button, input, select, textarea { font: inherit; }
 
 <script>
 // ── API ──────────────────────────────────────────────────
-var API = '<?= ScriptApp.getService().getUrl() ?>';
+var API = '<?= apiUrl ?>';
+var ACCESS_KEY = '<?= initialAccessKey ?>';
+var ACCESS_ROLE = '<?= initialAccessRole ?>';
+var ACCESS_CONTROL_ENABLED = <?= accessControlEnabled ? 'true' : 'false' ?>;
 
 function apiFetch(action, body){
   if(action === 'get_checklist'){
-    return fetch(API + '?action=get_checklist').then(function(r){ return r.json(); });
+    var url = API + '?action=get_checklist';
+    if(ACCESS_KEY) url += '&access=' + encodeURIComponent(ACCESS_KEY);
+    return fetch(url).then(function(r){ return r.json(); });
   }
   return fetch(API, {
     method: 'POST',
-    body: JSON.stringify(Object.assign({ action: action }, body || {}))
+    body: JSON.stringify(Object.assign({ action: action, accessKey: ACCESS_KEY }, body || {}))
   }).then(function(r){ return r.json(); });
 }
 
@@ -475,6 +480,28 @@ function esc(s){
 }
 function pct(n,d){ return d===0 ? 0 : Math.round(n/d*100); }
 function normalize(v){ return (v||'').toString().trim().toLowerCase(); }
+function roleRank(role){
+  return { none:0, viewer:1, editor:2, admin:3 }[role] || 0;
+}
+function canViewChecklist(){ return roleRank(ACCESS_ROLE) >= roleRank('viewer'); }
+function canEditPacked(){ return roleRank(ACCESS_ROLE) >= roleRank('editor'); }
+function canManageItems(){ return roleRank(ACCESS_ROLE) >= roleRank('admin'); }
+function roleLabel(role){
+  return { admin:'管理者', editor:'編輯者', viewer:'檢視者', none:'未授權' }[role] || role;
+}
+function permissionNote(){
+  if(ACCESS_ROLE === 'admin') return '可新增、編輯、刪除與調整所有裝備。';
+  if(ACCESS_ROLE === 'editor') return '可勾選裝袋進度，但不能新增、刪除或調整是否要帶。';
+  if(ACCESS_ROLE === 'viewer') return '僅可檢視目前清單與進度。';
+  return '目前網址沒有可用權限，請確認 access 參數是否正確。';
+}
+function handleAccessError(resp){
+  if(resp && resp.error === 'permission denied'){
+    alert('沒有這個操作權限');
+    return true;
+  }
+  return false;
+}
 
 function findItem(id){
   for(var i=0;i<items.length;i++) if(items[i].id===id) return items[i];
@@ -509,6 +536,12 @@ function isVisible(it){
 
 // ── Render ───────────────────────────────────────────────
 function render(){
+  if(!canViewChecklist()){
+    document.getElementById('app').innerHTML =
+      '<div class="center-msg"><div class="spinner"></div><span>此網址沒有檢視權限</span></div>';
+    return;
+  }
+
   var activeAll = items.filter(function(it){ return !it.noNeed; });
   var packedAll = activeAll.filter(function(it){ return it.packed; });
   var totalPct  = pct(packedAll.length, activeAll.length);
@@ -518,6 +551,10 @@ function render(){
   h += '<div class="card hero-card">';
   h += '<div class="eyebrow">CampKit Checklist</div>';
   h += '<h1 class="hero-title">' + esc(tripName) + '</h1>';
+  h += '<div class="stat-row">';
+  h += '<div class="stat-chip">權限 ' + esc(roleLabel(ACCESS_ROLE)) + '</div>';
+  h += '<div class="stat-chip">' + esc(permissionNote()) + '</div>';
+  h += '</div>';
   h += '<div class="overall-bar"><div class="overall-fill" style="width:' + totalPct + '%"></div></div>';
   h += '<div class="stat-row">';
   h += '<div class="stat-chip">整體 ' + totalPct + '%</div>';
@@ -594,13 +631,15 @@ function render(){
       var cls = 'item-row' + (it.noNeed?' is-no-need':'') + (it.packed?' is-packed':'');
       var rid = esc(it.id);
       h += '<div class="' + cls + '" data-row-id="' + rid + '">';
-      h += '<button type="button" class="chk' + (it.packed?' on':'') + '" data-toggle-packed="' + rid + '" aria-label="toggle packed"></button>';
+      h += '<button type="button" class="chk' + (it.packed?' on':'') + '" data-toggle-packed="' + rid + '" aria-label="toggle packed"' + (canEditPacked() ? '' : ' disabled') + '></button>';
       h += '<div class="item-body"><div class="item-name">' + esc(it.item) + '</div>';
       if(it.note) h += '<div class="item-note">📍 ' + esc(it.note) + '</div>';
       h += '</div>';
       h += '<div class="item-actions">';
-      h += '<button type="button" class="nn-btn' + (it.noNeed?' off':'') + '" data-toggle-noneed="' + rid + '">' + (it.noNeed ? '不帶' : '帶') + '</button>';
-      h += '<button type="button" class="icon-btn" data-edit-item="' + rid + '" aria-label="edit item">✎</button>';
+      if(canManageItems()){
+        h += '<button type="button" class="nn-btn' + (it.noNeed?' off':'') + '" data-toggle-noneed="' + rid + '">' + (it.noNeed ? '不帶' : '帶') + '</button>';
+        h += '<button type="button" class="icon-btn" data-edit-item="' + rid + '" aria-label="edit item">✎</button>';
+      }
       h += '</div>';
       h += '</div>';
     });
@@ -612,7 +651,9 @@ function render(){
   }
 
   h += '</main></section></div>';
-  h += '<button class="fab" id="fab-add" type="button"><span class="fab-plus">+</span><span>新增</span></button>';
+  if(canManageItems()){
+    h += '<button class="fab" id="fab-add" type="button"><span class="fab-plus">+</span><span>新增</span></button>';
+  }
 
   document.getElementById('app').innerHTML = h;
   bindEvents();
@@ -705,26 +746,37 @@ function applyPartial(){
 
 // ── Actions ──────────────────────────────────────────────
 function togglePacked(id){
+  if(!canEditPacked()) return;
   var it = findItem(id);
   if(!it || it.noNeed) return;
   it.packed = !it.packed;
   render();
-  apiFetch('toggle_packed', { id: id, value: it.packed });
+  apiFetch('toggle_packed', { id: id, value: it.packed }).then(function(resp){
+    if(resp && !resp.ok){
+      if(handleAccessError(resp)) reloadChecklist();
+    }
+  });
 }
 function toggleNoNeed(id){
+  if(!canManageItems()) return;
   var it = findItem(id);
   if(!it) return;
   it.noNeed = !it.noNeed;
   if(it.noNeed) it.packed = false;
   render();
   var val = it.noNeed;
-  apiFetch('toggle_no_need', { id: id, value: val }).then(function(){
+  apiFetch('toggle_no_need', { id: id, value: val }).then(function(resp){
+    if(resp && !resp.ok){
+      if(handleAccessError(resp)) return reloadChecklist();
+      return;
+    }
     if(val) apiFetch('toggle_packed', { id: id, value: false });
   });
 }
 
 // ── Add-item Modal ───────────────────────────────────────
 function openAddModal(){
+  if(!canManageItems()) return;
   modalState.mode = 'add';
   modalState.editingId = null;
   modalState.selectedBag = bagOrder.length > 0 ? bagOrder[0] : null;
@@ -746,6 +798,7 @@ function openAddModal(){
 }
 
 function openEditModal(id){
+  if(!canManageItems()) return;
   var item = findItem(id);
   if(!item) return;
 
@@ -807,6 +860,7 @@ function bindModalOnce(){
   document.getElementById('modal-delete').addEventListener('click', submitDeleteItem);
 }
 function submitAddItem(){
+  if(!canManageItems()) return;
   var name = document.getElementById('mf-name').value.trim();
   var note = document.getElementById('mf-note').value.trim();
   var bag  = modalState.newBagMode
@@ -826,6 +880,10 @@ function submitAddItem(){
 
   apiFetch(action, payload).then(function(resp){
     if(!resp || !resp.ok){
+      if(handleAccessError(resp)){
+        closeModal();
+        return reloadChecklist();
+      }
       saveBtn.disabled = false;
       saveBtn.textContent = modalState.mode === 'edit' ? '更新' : '儲存';
       alert((modalState.mode === 'edit' ? '更新失敗' : '新增失敗') + (resp && resp.error ? '：' + resp.error : ''));
@@ -844,6 +902,7 @@ function submitAddItem(){
 }
 
 function submitDeleteItem(){
+  if(!canManageItems()) return;
   if(modalState.mode !== 'edit' || !modalState.editingId) return;
   if(!confirm('確定要刪除這個裝備嗎？')) return;
 
@@ -855,6 +914,10 @@ function submitDeleteItem(){
 
   apiFetch('delete_item', { id: modalState.editingId }).then(function(resp){
     if(!resp || !resp.ok){
+      if(handleAccessError(resp)){
+        closeModal();
+        return reloadChecklist();
+      }
       deleteBtn.disabled = false;
       saveBtn.disabled = false;
       deleteBtn.textContent = '刪除';
@@ -877,8 +940,15 @@ function submitDeleteItem(){
 
 // ── Init ─────────────────────────────────────────────────
 bindModalOnce();
+if(!canViewChecklist()){
+  render();
+} else {
 apiFetch('get_checklist').then(function(resp){
   if(!resp.ok){
+    if(handleAccessError(resp)){
+      render();
+      return;
+    }
     document.getElementById('app').innerHTML = '<div class="center-msg">⚠️ 載入失敗，請重新整理</div>';
     return;
   }
@@ -890,6 +960,7 @@ apiFetch('get_checklist').then(function(resp){
 }).catch(function(){
   document.getElementById('app').innerHTML = '<div class="center-msg">⚠️ 網路錯誤，請重新整理</div>';
 });
+}
 </script>
 </body>
 </html>
